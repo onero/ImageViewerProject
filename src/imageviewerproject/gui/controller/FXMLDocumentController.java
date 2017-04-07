@@ -5,6 +5,7 @@
  */
 package imageviewerproject.gui.controller;
 
+import imageviewerproject.be.SlideShowPicture;
 import imageviewerproject.gui.model.ImageModel;
 import java.io.File;
 import java.net.URL;
@@ -17,6 +18,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.FileChooser;
@@ -48,9 +50,21 @@ public class FXMLDocumentController implements Initializable {
     private ImageView imageView;
 
     private final ImageModel imageModel;
+    @FXML
+    private TextField txtDelay;
+
+    private boolean running;
 
     public FXMLDocumentController() {
         imageModel = new ImageModel();
+    }
+
+    @FXML
+    private void handleSetDelay() {
+        if (!txtDelay.getText().isEmpty()) {
+            int delay = Integer.parseInt(txtDelay.getText());
+            imageModel.getImages().get(imageIdx).setDelay(delay);
+        }
     }
 
     @Override
@@ -77,7 +91,9 @@ public class FXMLDocumentController implements Initializable {
         if (files.size() > 0) {
             files.forEach((File f)
                     -> {
-                imageModel.addImage(new Image(f.toURI().toString()));
+                Image imageToAdd = new Image(f.toURI().toString());
+                String path = f.toURI().toString();
+                imageModel.addImage(new SlideShowPicture(imageToAdd, path));
             });
             displayImage();
         }
@@ -99,14 +115,17 @@ public class FXMLDocumentController implements Initializable {
 
     private void displayImage() {
         if (imageModel.getImages() != null) {
-            imageView.setImage(imageModel.getImages().get(imageIdx));
+            imageView.setImage(imageModel.getImages().get(imageIdx).getImage());
+            System.out.println("FilePath = " + imageModel.getImages().get(imageIdx).getPath());
+            System.out.println("Delay = " + imageModel.getImages().get(imageIdx).getDelay());
         }
     }
 
     @FXML
     private void handlePlay() {
-        timer = new Timer();
-        long delay = 2000; //update once per 2 seconds.
+        running = true;
+        timer = new Timer(true);
+        long delay = imageModel.getImages().get(imageIdx).getDelay();
         TimerTask task = new TimerTask() {
             @Override
             public void run() {
@@ -114,19 +133,25 @@ public class FXMLDocumentController implements Initializable {
             }
         };
         timer.schedule(task, 0, delay);
+        while (running) {
+            if (imageModel.getImages().get(imageIdx).getDelay() != delay) {
+                timer.schedule(task, 0, imageModel.getImages().get(imageIdx).getDelay());
+
+            }
+        }
     }
 
     @FXML
-    private void handlePause(ActionEvent event) {
+    private void handlePause() {
         timer.cancel();
         timer.purge();
+        running = false;
     }
 
     @FXML
-    private void handleStop(ActionEvent event) {
-        imageView.setImage(imageModel.getImages().get(0));
-        timer.cancel();
-        timer.purge();
+    private void handleStop() {
+        imageView.setImage(imageModel.getImages().get(0).getImage());
+        handlePause();
     }
 
 }

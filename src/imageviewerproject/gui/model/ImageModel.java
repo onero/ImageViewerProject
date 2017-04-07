@@ -5,23 +5,23 @@
  */
 package imageviewerproject.gui.model;
 
+import imageviewerproject.be.SlideShowPicture;
 import java.util.ArrayList;
 import java.util.List;
-import javafx.scene.image.Image;
 
 public class ImageModel {
 
-    private final List<Image> images;
+    private final List<SlideShowPicture> images;
 
     public ImageModel() {
         images = new ArrayList<>();
     }
 
-    public void addImage(Image imageToAdd) {
+    public void addImage(SlideShowPicture imageToAdd) {
         images.add(imageToAdd);
     }
 
-    public List<Image> getImages() {
+    public List<SlideShowPicture> getImages() {
         return images;
     }
 
